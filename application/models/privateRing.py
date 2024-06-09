@@ -16,7 +16,7 @@ class PrivateRing:
 
 
     def setID(self):
-        file_path = os.path.join(os.path.dirname(__file__), '../../ParoviKljučeva/Brojač.txt')
+        file_path = os.path.join(os.path.dirname(__file__), '../../keyPairs/counter.txt')
 
         try:
             with open(file_path, 'r') as file:
