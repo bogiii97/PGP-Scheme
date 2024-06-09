@@ -1,27 +1,11 @@
-1)Генерисање новог и брисање постојећег пара RSA кључева
-RSA sve generiše
-Gde čuvati lozinku koja služi za dešifrovanje privatnog ključa ( u listi šifrovanu samo je ne prikazujemo) - dodatno polje u listi lokalnoj koje se ne prikazuje i šifrovano je
-Da li SHA-1 i CAST-128 - sve implementirano već
-Ključ se vezuje za UserID (ja imam više mejlova, i svaki mejl ima svoj ključ)
+FRONT
 
-2)Увоз и извоз јавног дела кључа или целог пара кључева у .pem формату
-U tabeli privatnih ključeva generišem nečiji drugi mejl čije tražene delove izvezem na predefinisanu lokaciju u fajl sistemu i onda taj red obrišem
-I u prikazu javnog prstena mogu da uvezem neki pem formatu i tu učitam nečiji javni ključ i njegov ID 
-U GUI-ju ne prikazujemo šifre jer su predugačke
-
-
-3)Приказ прстена јавних и приватних кључева са свим потребним информацијама
-Prilikom generisanja para ključeva dodati u privatnu prsten strukturu
-Zanemarujemo polja OwnerTrust, Legimite Trust, Signature i Signature trust
-Lokalno ili učitavanje iz fajla
-
------------------------------
 #Pokretanje aplikacije
 Uneti mejl korisnika koji se loguje
 Kupimo njegove podatke sa odgovarajuće putanje u fajl sistemu (ili iz baze)
 
 #Glavna strana
-4 button-a (Prikaži privatni prsten, prikaži javni prsten, generiši par ključeva, pošalji poruku, pročitaj poruku)
+4 button-a (Prikaži privatni i javni prsten, generiši par ključeva, pošalji poruku, pročitaj poruku)
 
 #Slanje poruke
 Unosimo mejl osobe kojoj šaljemo (idB), tekst poruke i deo za kriptovanje
@@ -33,10 +17,15 @@ Biramo fajl u našem folderu primljenih poruka i dekriptujemo željenu poruku
 #Prikaz javnih i privatnih prstenova
 Tablerani prikaz kao sa slajdova koji se učitava iz fajla i ažurira kada se generiše novi ključ 
 
-Strukture: 
-Prsten javnih
-Privatnih ključeva
-Struktura poruke
+----------------------
+STRUKTURE
+
+Prsten javnih (ID, TimeStamp, KeyID, Public key, UserID) 
+Privatnih ključeva (ID, heširana Passphrase lozinka, TimeStamp, KeyID, Public key, Encrypted Private key, UserID)
+Struktura poruke (TODO)
+
+----------------------
+FLOW APLIKACIJE
 
 Kada se logujemo unosimo imejl korisnika koji predstavlja njegov UserID. Nakon logovanja mi iz ParoviKljučeva/UserID/private učitavamo sve naše redove iz private foldera u python listu privateRows. Isto tako iz ParoviKljučeva/UserId/public učitavamo sve redove iz public foldera u python listu publicRows. Kada generišemo RSA par ključeva mi to dodajemo u python listu privateRows, pri čemu polje ID tom redu postavljamo na vrednost brojač+1 gde vrednost brojača dobijamo čitanjem iz gajla ParoviKljučevi/brojač.txt i zatim inkrementiramo brojač u fajlu. Takođe novokreirani red u privatnom prstenu sačuvamo u fajl sistemu na putanji ParoviKljučeva/UserID/Private/ID.txt. 
 
