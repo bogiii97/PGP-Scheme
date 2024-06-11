@@ -1,0 +1,18 @@
+*Ulogujem se sa odgovarajućim imejlom
+Kada se ulogujem ukoliko već ne postojim u listi users, biću dodat i selektovan kao ulogovan korisnik 
+
+*Promena korisnika
+Samo se vratimo na početni screen i opet možemo uneti imejl nekog korisnika
+I opet ako uneti imejl ne postoji u listi users, biće dodat i selektovan kao ulogovan korisnik
+
+*Generišem ključeve
+heš lozinke, kriptovani privatni, binarni privatni, binarni javni i binarni id javnog dodajem u privatan prsten
+
+*Brisanje reda u privatnom prstenu
+Brišemo odgovarajući red iz liste ali i iz fajl sistema ako smo ga izvezli, i iteriramo kroz sve korisnike i njihove javne prstene i brišemo one koji imaju isti ID
+
+*Izvoz fajla
+Unosimo lozinku, lozinka se hešira i poredi sa hešom lozinke koji se čuva za dati red prstena ako je to okej, pretvorimo binarni javni i binarni privatni u .pem i dodatno postavimo id javnog kao najniža 64 bita .pem formata binarnog javnog. Fajl se izvozi na putanji Users/Imejl
+
+*Uvoz fajla
+Biramo odgovarajući fajl iz fajl sistema, ekstrakujemo samo javni ključ u pem formatu, od njega pravimo binarni i uzimamo najniža 64 bita tog binarnog da nam bude ID. Dodatno UserID kupimo kao ime foldera odakle smo uvezli fajl

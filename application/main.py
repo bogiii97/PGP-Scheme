@@ -1,10 +1,8 @@
 import sys
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QStackedWidget
+from PyQt5.QtWidgets import QApplication, QStackedWidget
 from gui.login_window import LoginWindow
 from gui.user_menu_window import UserMenuWindow
-
-
+from gui.generate_keys_window import GenerateKeysWindow
 from models.user import User
 
 class Controller:
@@ -19,16 +17,20 @@ class Controller:
         self.widget.setCurrentWidget(self.login_window)
 
     def show_user_menu(self, email):
-
         user = self.find_user_by_email(email)
         if user:
-            self.user_menu_window = UserMenuWindow(email, self.users)
+            self.user_menu_window = UserMenuWindow(user)
+            self.user_menu_window.switch_window.connect(self.show_generate_keys)
             self.widget.addWidget(self.user_menu_window)
             self.widget.setCurrentWidget(self.user_menu_window)
         else:
+            # Add handling for user not found
             pass
 
-
+    def show_generate_keys(self, user):
+        self.generate_keys_window = GenerateKeysWindow(user)
+        self.widget.addWidget(self.generate_keys_window)
+        self.widget.setCurrentWidget(self.generate_keys_window)
 
     def find_user_by_email(self, email):
         for user in self.users:
@@ -37,7 +39,6 @@ class Controller:
         return None
 
 def main():
-
     users = []
 
     userA = User("a", "a@gmail.com")

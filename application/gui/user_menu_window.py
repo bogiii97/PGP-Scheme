@@ -1,24 +1,30 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QListWidget
+from PyQt5.QtCore import pyqtSignal
 
 class UserMenuWindow(QWidget):
-    def __init__(self, email, users):
+    switch_window = pyqtSignal(object)
+
+    def __init__(self, user):
         super().__init__()
         self.setWindowTitle('User Menu')
-        self.email = email
-        self.users = users
+        self.user = user
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
 
-        self.email_label = QLabel(f'Logged in as: {self.email}', self)
+        self.email_label = QLabel(f'Logged in as: {self.user.email}', self)
         layout.addWidget(self.email_label)
 
         self.generate_key_button = QPushButton('Generisi kljuc', self)
+        self.generate_key_button.clicked.connect(self.show_generate_keys_window)
         layout.addWidget(self.generate_key_button)
 
-        self.view_rings_button = QPushButton('Pogledaj prstene', self)
-        layout.addWidget(self.view_rings_button)
+        self.view_private_ring_button = QPushButton('Pogledaj privatni prsten', self)
+        layout.addWidget(self.view_private_ring_button)
+
+        self.view_public_ring_button = QPushButton('Pogledaj javni prsten', self)
+        layout.addWidget(self.view_public_ring_button)
 
         self.import_key_button = QPushButton('Uvezi kljuc', self)
         layout.addWidget(self.import_key_button)
@@ -32,12 +38,7 @@ class UserMenuWindow(QWidget):
         self.receive_message_button = QPushButton('Primi poruku', self)
         layout.addWidget(self.receive_message_button)
 
-        self.all_users_list = QListWidget(self)
-        self.populate_all_users()
-        layout.addWidget(self.all_users_list)
-
         self.setLayout(layout)
 
-    def populate_all_users(self):
-        for user in self.users:
-            self.all_users_list.addItem(user.email)
+    def show_generate_keys_window(self):
+        self.switch_window.emit(self.user)

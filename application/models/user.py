@@ -7,9 +7,11 @@ class User:
     def __init__(self, name, email):
         self.name = name
         self.email = email
-        self.private_keys = []
-        self.public_keys = []
+        self.private_ring = []
+        self.public_ring = []
         self.exported_keys = []
+
+        # popuni ova tri niza iz fajlova
 
     def add_private_key(self, private_key):
         if isinstance(private_key, PrivateKey):

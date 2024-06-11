@@ -1,11 +1,9 @@
 import os
 
-class PrivateRing:
-    def __init__(self, passphrasePassword, timeStamp, keyID, publicKey, privateKey, userID):
+class PrivateRingRow:
+    def __init__(self, timeStamp, publicKey, privateKey, userID):
         self.ID = self.setID()
-        self.passphrasePassword = passphrasePassword
         self.timeStamp = timeStamp
-        self.keyID = keyID
         self.publicKey = publicKey
         self.privateKey = privateKey
         self.userID = userID

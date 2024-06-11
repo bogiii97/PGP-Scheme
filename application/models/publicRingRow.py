@@ -1,8 +1,7 @@
-class PublicRing:
-    def __init__(self, ID, timeStamp, keyID, publicKey,userID):
+class PublicRingRow:
+    def __init__(self, ID, timeStamp, publicKey, userID):
         self.ID = ID
         self.timeStamp = timeStamp
-        self.keyID = keyID
         self.publicKey = publicKey
         self.userID = userID
 
