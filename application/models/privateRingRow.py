@@ -9,8 +9,7 @@ class PrivateRingRow:
         self.userID = userID
 
     def __repr__(self):
-        return (f"PrivateRing:\nID={self.ID}\npassphrasePassword={self.passphrasePassword}\ntimeStamp={self.timeStamp}\n"
-                f"keyID={self.keyID}\npublicKey={self.publicKey}\nprivateKey={self.privateKey}\nuserID={self.userID}")
+        pass
 
 
     def setID(self):

@@ -1,15 +1,18 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QRadioButton, QPushButton, QButtonGroup, QMessageBox, QLineEdit
-from application.algorithms.RSA import generate_keys, convertToPem
-from application.models.privateRingRow import  PrivateRingRow
+from PyQt5.QtCore import pyqtSignal
+from application.algorithms.RSA import generate_keys
+from application.models.privateRingRow import PrivateRingRow
 from application.keys.private_key import PrivateKey
 from application.keys.public_key import PublicKey
 from datetime import datetime
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
 import hashlib
-import os, base64
+import os
+from application.util import *
+
 class GenerateKeysWindow(QWidget):
+    switch_to_menu = pyqtSignal(object)
+
     def __init__(self, user):
         super().__init__()
         self.setWindowTitle('Generate Keys')
@@ -19,6 +22,10 @@ class GenerateKeysWindow(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout()
+
+        self.back_button = QPushButton('Nazad na meni', self)
+        self.back_button.clicked.connect(self.back_to_menu)
+        layout.addWidget(self.back_button)
 
         self.label = QLabel('Izaberi veličinu ključa:', self)
         layout.addWidget(self.label)
@@ -44,6 +51,9 @@ class GenerateKeysWindow(QWidget):
 
         self.setLayout(layout)
 
+    def back_to_menu(self):
+        self.switch_to_menu.emit(self.user.email)
+
     def submit(self):
         selected_button = self.radio_button_group.checkedButton()
         password = self.password_input.text()
@@ -63,7 +73,6 @@ class GenerateKeysWindow(QWidget):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
 
-
             sha1 = hashlib.sha1()
             sha1.update(password.encode('utf-8'))
             hashed_password = sha1.digest()
@@ -77,23 +86,22 @@ class GenerateKeysWindow(QWidget):
 
             # Extract the lowest 64 bits from the public key
             lowest_64_bits_bytes = public_byte[-8:]
-            base64.b64encode(lowest_64_bits_bytes).decode('utf-8')
-            public_id_pem = f"-----BEGIN PUBLIC ID-----\n{lowest_64_bits_bytes}\n-----END PUBLIC ID-----\n"
 
-            private_key = PrivateKey(private_byte, encrypted_private_key, password)
-            public_key = PublicKey(public_byte, public_id_pem)
+            private_key = PrivateKey(encrypted_private_key)
+            public_key = PublicKey(public_byte, lowest_64_bits_bytes)
             private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email)
 
             self.user.private_ring.append(private_ring_row)
 
-            convertToPem(private_byte, public_byte, lowest_64_bits_bytes)
-
-
             QMessageBox.information(self, 'Generisanje ključa', 'Uspešno ste kreirali ključ')
 
-            # vracanje na show menu
+            self.password_input.clear()
+            self.radio_button_group.setExclusive(False)
+            self.radio_button_1024.setChecked(False)
+            self.radio_button_2048.setChecked(False)
+            self.radio_button_group.setExclusive(True)
+
         elif not selected_button:
             QMessageBox.warning(self, 'Greška', 'Molimo vas da izaberete veličinu ključa.')
         elif not password:
             QMessageBox.warning(self, 'Greška', 'Molimo vas da unesete lozinku.')
-

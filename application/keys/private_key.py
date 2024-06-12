@@ -1,5 +1,3 @@
 class PrivateKey:
-    def __init__(self, key, encryptedKey, password):
+    def __init__(self, key):
         self.key = key
-        self.encryptedKey = encryptedKey
-        self.password = password

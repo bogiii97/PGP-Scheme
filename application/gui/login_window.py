@@ -9,6 +9,7 @@ class LoginWindow(QWidget):
         self.users = users
         self.setWindowTitle('Login')
         self.init_ui()
+        self.setFixedSize(200, 100)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -17,7 +18,7 @@ class LoginWindow(QWidget):
         self.email_input.setPlaceholderText('Enter your email')
         layout.addWidget(self.email_input)
 
-        self.submit_button = QPushButton('Submit', self)
+        self.submit_button = QPushButton('Uloguj se', self)
         self.submit_button.clicked.connect(self.submit_email)
         layout.addWidget(self.submit_button)
 

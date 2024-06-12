@@ -6,5 +6,4 @@ class PublicRingRow:
         self.userID = userID
 
     def __repr__(self):
-        return (f"PrivateRing:\nID={self.ID}\ntimeStamp={self.timeStamp}\n"
-            f"keyID={self.keyID}\npublicKey={self.publicKey}\nuserID={self.userID}")
+        pass
