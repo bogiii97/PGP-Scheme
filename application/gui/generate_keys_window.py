@@ -15,7 +15,7 @@ class GenerateKeysWindow(QWidget):
 
     def __init__(self, user):
         super().__init__()
-        self.setWindowTitle('Generate Keys')
+        self.setWindowTitle('Generisanje ključeva')
         self.user = user
         self.key_size = None
         self.init_ui()

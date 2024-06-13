@@ -7,7 +7,7 @@ class LoginWindow(QWidget):
     def __init__(self, users):
         super().__init__()
         self.users = users
-        self.setWindowTitle('Login')
+        self.setWindowTitle('Prijava')
         self.init_ui()
         self.setFixedSize(200, 100)
 

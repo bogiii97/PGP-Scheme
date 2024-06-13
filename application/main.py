@@ -4,6 +4,7 @@ from gui.login_window import LoginWindow
 from gui.user_menu_window import UserMenuWindow
 from gui.generate_keys_window import GenerateKeysWindow
 from gui.private_ring_window import PrivateRingWindow  # Importujemo PrivateRingWindow
+from gui.public_ring_window import PublicRingWindow  # Importujemo PublicRingWindow
 from models.user import User
 
 class Controller:
@@ -32,15 +33,16 @@ class Controller:
             user = User(email.split("@")[0], email)
             self.users.append(user)
 
-
         self.user_menu_window = UserMenuWindow(user, self.users)
         self.user_menu_window.switch_window.connect(self.show_generate_keys)
         self.user_menu_window.switch_user.connect(self.show_login)
         self.user_menu_window.view_private_ring.connect(self.show_private_ring)  # Povezujemo signal sa metodom
+        self.user_menu_window.view_public_ring.connect(self.show_public_ring)  # Povezujemo signal sa metodom za javni prsten
         self.widget.addWidget(self.user_menu_window)
         self.widget.setCurrentWidget(self.user_menu_window)
         self.widget.setFixedSize(400, 250)
         self.center_window(self.widget)
+
     def show_generate_keys(self, user):
         self.generate_keys_window = GenerateKeysWindow(user)
         self.generate_keys_window.switch_to_menu.connect(self.show_user_menu)
@@ -54,6 +56,14 @@ class Controller:
         self.private_ring_window.switch_to_menu.connect(self.show_user_menu)  # Povezujemo signal sa metodom
         self.widget.addWidget(self.private_ring_window)
         self.widget.setCurrentWidget(self.private_ring_window)
+        self.widget.setFixedSize(1500, 400)
+        self.center_window(self.widget)
+
+    def show_public_ring(self, user, users):
+        self.public_ring_window = PublicRingWindow(user, users)
+        self.public_ring_window.switch_to_menu.connect(self.show_user_menu)  # Povezujemo signal sa metodom za povratak
+        self.widget.addWidget(self.public_ring_window)
+        self.widget.setCurrentWidget(self.public_ring_window)
         self.widget.setFixedSize(1500, 400)
         self.center_window(self.widget)
 

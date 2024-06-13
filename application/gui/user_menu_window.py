@@ -5,10 +5,11 @@ class UserMenuWindow(QWidget):
     switch_window = pyqtSignal(object)
     switch_user = pyqtSignal()
     view_private_ring = pyqtSignal(object, list)  # Dodajemo novi signal
+    view_public_ring = pyqtSignal(object, list)  # Dodajemo novi signal za javni prsten
 
     def __init__(self, user, users):
         super().__init__()
-        self.setWindowTitle('User Menu')
+        self.setWindowTitle('Korisnički meni')
         self.user = user
         self.users = users
         self.setFixedSize(400, 250)
@@ -29,6 +30,7 @@ class UserMenuWindow(QWidget):
         layout.addWidget(self.view_private_ring_button)
 
         self.view_public_ring_button = QPushButton('Pogledaj javni prsten', self)
+        self.view_public_ring_button.clicked.connect(self.show_public_ring_window)  # Povezujemo dugme sa metodom
         layout.addWidget(self.view_public_ring_button)
 
         self.send_message_button = QPushButton('Posalji poruku', self)
@@ -48,3 +50,6 @@ class UserMenuWindow(QWidget):
 
     def show_private_ring_window(self):
         self.view_private_ring.emit(self.user, self.users)  # Emitujemo signal sa korisnikom i listom korisnika
+
+    def show_public_ring_window(self):
+        self.view_public_ring.emit(self.user, self.users)  # Emitujemo signal sa korisnikom i listom korisnika

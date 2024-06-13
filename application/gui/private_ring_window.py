@@ -10,7 +10,7 @@ class PrivateRingWindow(QWidget):
         super().__init__()
         self.user = user
         self.users = users
-        self.setWindowTitle('Private Ring')
+        self.setWindowTitle('Privatni prsten')
         self.setFixedSize(1500, 400)  # Postavljanje fiksne veličine prozora
         self.init_ui()
 
@@ -34,7 +34,7 @@ class PrivateRingWindow(QWidget):
 
         # Centrirano dugme ispod tabele
         button_layout = QHBoxLayout()
-        self.import_button = QPushButton('Import Pair', self)
+        self.import_button = QPushButton('Uvezi par', self)
         self.import_button.setFixedWidth(150)
         self.import_button.clicked.connect(self.import_key_pair)
         button_layout.addStretch()
@@ -72,7 +72,7 @@ class PrivateRingWindow(QWidget):
             # Connecting button signals to methods
             export_public_button.clicked.connect(lambda _, pemPu=public_key_pem, pu=entry.publicKey.key: self.export_public_key(pemPu, pu))
             export_pair_button.clicked.connect(lambda _, pemPu=public_key_pem, pu=entry.publicKey.key, pemPr=private_key_pem: self.export_key_pair(pemPu, pu, pemPr))
-            delete_button.clicked.connect(lambda _, r=row: self.delete_key(r))
+            delete_button.clicked.connect(lambda _, pu=entry.publicKey.key: self.delete_key(pu))
 
     def export_public_key(self, public_key_pem, public_key):
         # Implement your export public key logic here
@@ -114,9 +114,28 @@ class PrivateRingWindow(QWidget):
             file.write(file_data)
         print(f'File {filename} created at {file_path}')
 
-    def delete_key(self, row):
-        # Implement your delete key logic here
-        print(f'Delete key for row {row}')
+    def delete_key(self, public_key):
+        id = -1
+        for entry in self.user.private_ring:
+            if entry.publicKey.key == public_key:
+                id = entry.ID
+
+        for user in self.users:
+            user.private_ring = [entry for entry in user.private_ring if entry.ID != id]
+
+        keysPairsRelativePath = "..\\keyPairs"
+        public_file_path = os.path.join(keysPairsRelativePath, self.user.email, "public", f"{id}.txt")
+        pair_file_path = os.path.join(keysPairsRelativePath, self.user.email, "pair", f"{id}.txt")
+
+        if os.path.exists(public_file_path):
+            os.remove(public_file_path)
+            print(f'File {public_file_path} deleted')
+
+        if os.path.exists(pair_file_path):
+            os.remove(pair_file_path)
+            print(f'File {pair_file_path} deleted')
+
+        self.populate_table()
 
     def import_key_pair(self):
         # Implement your import key pair logic here
