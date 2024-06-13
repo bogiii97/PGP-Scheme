@@ -15,6 +15,21 @@ def convertPublicToPEM(public_byte):
     public_pem_cleaned = public_pem.replace("-----BEGIN PUBLIC KEY-----\n", "").replace("-----END PUBLIC KEY-----\n", "").replace("\n", "")
     return public_pem_cleaned
 
+def convertPEMToPublic(public_pem_cleaned):
+    # Dodavanje zaglavlja i završetaka
+    public_pem = f"-----BEGIN PUBLIC KEY-----\n{public_pem_cleaned}\n-----END PUBLIC KEY-----\n"
+
+    # Učitavanje javnog ključa iz PEM formata
+    public_key_obj = serialization.load_pem_public_key(public_pem.encode('utf-8'), backend=default_backend())
+
+    # Serijalizacija nazad u DER format (bajtove)
+    public_byte = public_key_obj.public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    return public_byte
+
 def convertPrivateToPEM(encrypted_private_byte):
     encrypted_private_key_b64 = base64.b64encode(encrypted_private_byte).decode('utf-8')
     encrypted_private_key_pem = f"-----BEGIN ENCRYPTED PRIVATE KEY-----\n{encrypted_private_key_b64}\n-----END ENCRYPTED PRIVATE KEY-----\n"
@@ -22,3 +37,13 @@ def convertPrivateToPEM(encrypted_private_byte):
     # Uklanjanje zaglavlja i završetaka
     private_pem_cleaned = encrypted_private_key_pem.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----\n", "").replace("-----END ENCRYPTED PRIVATE KEY-----\n", "").replace("\n", "")
     return private_pem_cleaned
+
+def convertPEMToPrivate(private_pem_cleaned):
+    # Dodavanje zaglavlja i završetaka
+    encrypted_private_key_pem = f"-----BEGIN ENCRYPTED PRIVATE KEY-----\n{private_pem_cleaned}\n-----END ENCRYPTED PRIVATE KEY-----\n"
+
+    # Uklanjanje novih linija i dekodiranje iz base64
+    encrypted_private_key_b64 = encrypted_private_key_pem.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----\n", "").replace("\n-----END ENCRYPTED PRIVATE KEY-----\n", "").replace("\n", "")
+    encrypted_private_byte = base64.b64decode(encrypted_private_key_b64)
+
+    return encrypted_private_byte

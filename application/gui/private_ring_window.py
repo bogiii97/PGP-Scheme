@@ -1,5 +1,12 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QHBoxLayout
+from datetime import datetime
+
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, \
+    QHBoxLayout, QFileDialog
 from PyQt5.QtCore import pyqtSignal, Qt
+
+from application.keys.private_key import PrivateKey
+from application.keys.public_key import PublicKey
+from application.models.privateRingRow import PrivateRingRow
 from application.util import *
 import os
 
@@ -138,8 +145,38 @@ class PrivateRingWindow(QWidget):
         self.populate_table()
 
     def import_key_pair(self):
-        # Implement your import key pair logic here
-        print('Import key pair')
+        # Putanja do korisničkog foldera sa folderom 'pair'
+        user_folder_path = os.path.join("C:\\Users\\matej\\Desktop\\ZP PROJEKAT\\keyPairs", self.user.email, "pair")
+
+        # Otvaranje dijaloga za odabir fajla
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Odaberite fajl sa parom ključeva", user_folder_path,
+                                                   "Text Files (*.txt);;All Files (*)", options=options)
+
+        if file_name:
+            try:
+                # Čitanje sadržaja fajla
+                with open(file_name, 'r') as file:
+                    file_content = file.read()
+                    print(f'Sadržaj fajla {file_name}:')
+
+                    #ovde imas file_content
+                    public_pem_cleaned, private_pem_cleaned = file_content.split("+++++++++++++++++++")
+                    public_pem_cleaned = public_pem_cleaned.strip()
+                    private_pem_cleaned = private_pem_cleaned.strip()
+
+                    public_byte = convertPEMToPublic(public_pem_cleaned)
+                    encrypyed_private_byte = convertPEMToPrivate(private_pem_cleaned)
+
+                    lowest_64_bits_bytes = public_byte[-8:]
+
+                    private_key = PrivateKey(encrypyed_private_byte)
+                    public_key = PublicKey(public_byte, lowest_64_bits_bytes)
+                    private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email)
+
+                    self.user.private_ring.append(private_ring_row)
+            except Exception as e:
+                print(f"Greška prilikom čitanja fajla: {e}")
 
     def does_user_folder_exists(self, path, email):
         folder_path = os.path.join(path, email)

@@ -1,5 +1,11 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QHBoxLayout
+from datetime import datetime
+
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, \
+    QHBoxLayout, QFileDialog
 from PyQt5.QtCore import pyqtSignal, Qt
+
+from application.keys.public_key import PublicKey
+from application.models.publicRingRow import PublicRingRow
 from application.util import *
 import os
 
@@ -77,4 +83,26 @@ class PublicRingWindow(QWidget):
         self.populate_table()
 
     def import_public_key(self):
-        pass
+        # Putanja do korisničkog foldera sa folderom 'pair'
+        user_folder_path = os.path.join("C:\\Users\\matej\\Desktop\\ZP PROJEKAT\\keyPairs")
+
+        # Otvaranje dijaloga za odabir fajla
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Odaberite fajl sa javnim kljucem", user_folder_path,
+                                                   "Text Files (*.txt);;All Files (*)", options=options)
+
+        if file_name:
+            try:
+                # Čitanje sadržaja fajla
+                with open(file_name, 'r') as file:
+                    file_content = file.read()
+                    print(f'Sadržaj fajla {file_name}:')
+
+                    public_byte = convertPEMToPublic(file_content)
+                    lowest_64_bits_bytes = public_byte[-8:]
+                    public_key = PublicKey(public_byte, lowest_64_bits_bytes)
+                    public_ring_row = PublicRingRow(100, datetime.now(), public_key, self.user.email)
+
+                    self.user.public_ring.append(public_ring_row)
+            except Exception as e:
+                print(f"Greška prilikom čitanja fajla: {e}")
