@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from application.keys.public_key import PublicKey
 from application.models.publicRingRow import PublicRingRow
 from application.util import *
-import os
+import os, re
 
 class PublicRingWindow(QWidget):
     switch_to_menu = pyqtSignal(object)  # Signal za vraćanje na meni
@@ -78,13 +78,11 @@ class PublicRingWindow(QWidget):
 
         self.user.public_ring = [entry for entry in self.user.public_ring if entry.ID != id]
 
-        #self.user.public_ring = [entry for entry in self.user.public_ring if entry.public_key.key != public_key]
-
         self.populate_table()
 
     def import_public_key(self):
         # Putanja do korisničkog foldera sa folderom 'pair'
-        user_folder_path = os.path.join("C:\\Users\\matej\\Desktop\\ZP PROJEKAT\\keyPairs")
+        user_folder_path = os.path.join("..\\keyPairs")
 
         # Otvaranje dijaloga za odabir fajla
         options = QFileDialog.Options()
@@ -94,15 +92,32 @@ class PublicRingWindow(QWidget):
         if file_name:
             try:
                 # Čitanje sadržaja fajla
+                print("********************************")
+                print(file_name)
                 with open(file_name, 'r') as file:
                     file_content = file.read()
                     print(f'Sadržaj fajla {file_name}:')
 
+                    match = re.search(r'/(\d+)\.txt$', file_name)
+                    if match:
+                        userId = match.group(1)
+                    else:
+                        print("Broj nije pronađen na putanji")
+                    print(userId)
+
+                    # Ekstrahovanje stringa koji se nalazi nakon 'keyPairs\\' i pre 'public\\'
+                    user_match = re.search(r'keyPairs\\([^\\]+)\\public', file_name.replace("/", "\\"))
+                    if user_match:
+                        importedEmail = user_match.group(1)
+                    else:
+                        print("Korisnički folder nije pronađen na putanji")
+                        return
+
                     public_byte = convertPEMToPublic(file_content)
                     lowest_64_bits_bytes = public_byte[-8:]
                     public_key = PublicKey(public_byte, lowest_64_bits_bytes)
-                    public_ring_row = PublicRingRow(100, datetime.now(), public_key, self.user.email)
-
+                    public_ring_row = PublicRingRow(int(userId), datetime.now(), public_key, importedEmail)
                     self.user.public_ring.append(public_ring_row)
             except Exception as e:
                 print(f"Greška prilikom čitanja fajla: {e}")
+        self.populate_table()

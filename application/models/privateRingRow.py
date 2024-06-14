@@ -1,8 +1,11 @@
 import os
 
 class PrivateRingRow:
-    def __init__(self, timeStamp, publicKey, privateKey, userID):
-        self.ID = self.setID()
+    def __init__(self, timeStamp, publicKey, privateKey, userID, ID = None):
+        if ID is None:
+            self.ID = self.setID()
+        else:
+            self.ID = ID
         self.timeStamp = timeStamp
         self.publicKey = publicKey
         self.privateKey = privateKey

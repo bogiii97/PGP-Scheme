@@ -8,7 +8,7 @@ from application.keys.private_key import PrivateKey
 from application.keys.public_key import PublicKey
 from application.models.privateRingRow import PrivateRingRow
 from application.util import *
-import os
+import os, re
 
 class PrivateRingWindow(QWidget):
     switch_to_menu = pyqtSignal(object)  # Signal za vraćanje na meni
@@ -96,6 +96,7 @@ class PrivateRingWindow(QWidget):
                 filename = str(entry.ID) + ".txt"
         file_data = public_key_pem
 
+
         file_path = os.path.join(keysPairsRelativePath, self.user.email, "public", filename)
         with open(file_path, 'w') as file:
             file.write(file_data)
@@ -127,9 +128,11 @@ class PrivateRingWindow(QWidget):
             if entry.publicKey.key == public_key:
                 id = entry.ID
 
+        self.user.private_ring = [entry for entry in self.user.private_ring if entry.ID != id]
         for user in self.users:
-            user.private_ring = [entry for entry in user.private_ring if entry.ID != id]
-
+            user.public_ring = [entry for entry in user.public_ring if entry.ID != id]
+            for x in user.public_ring:
+                print(user.email, x.ID)
         keysPairsRelativePath = "..\\keyPairs"
         public_file_path = os.path.join(keysPairsRelativePath, self.user.email, "public", f"{id}.txt")
         pair_file_path = os.path.join(keysPairsRelativePath, self.user.email, "pair", f"{id}.txt")
@@ -146,19 +149,24 @@ class PrivateRingWindow(QWidget):
 
     def import_key_pair(self):
         # Putanja do korisničkog foldera sa folderom 'pair'
-        user_folder_path = os.path.join("C:\\Users\\matej\\Desktop\\ZP PROJEKAT\\keyPairs", self.user.email, "pair")
+        user_folder_path = os.path.join("..\\keyPairs", self.user.email, "pair")
 
         # Otvaranje dijaloga za odabir fajla
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Odaberite fajl sa parom ključeva", user_folder_path,
                                                    "Text Files (*.txt);;All Files (*)", options=options)
-
         if file_name:
             try:
                 # Čitanje sadržaja fajla
                 with open(file_name, 'r') as file:
                     file_content = file.read()
                     print(f'Sadržaj fajla {file_name}:')
+
+
+                    match = re.search(r'/(\d+)\.txt$', file_name)
+                    if match: userId = match.group(1)
+                    else: print("Broj nije pronađen na putanji")
+                    print(userId)
 
                     #ovde imas file_content
                     public_pem_cleaned, private_pem_cleaned = file_content.split("+++++++++++++++++++")
@@ -172,11 +180,12 @@ class PrivateRingWindow(QWidget):
 
                     private_key = PrivateKey(encrypyed_private_byte)
                     public_key = PublicKey(public_byte, lowest_64_bits_bytes)
-                    private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email)
-
+                    private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email, int(userId))
+                    print(userId)
                     self.user.private_ring.append(private_ring_row)
             except Exception as e:
                 print(f"Greška prilikom čitanja fajla: {e}")
+        self.populate_table()
 
     def does_user_folder_exists(self, path, email):
         folder_path = os.path.join(path, email)
