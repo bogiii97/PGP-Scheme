@@ -57,6 +57,7 @@ class GenerateKeysWindow(QWidget):
     def submit(self):
         selected_button = self.radio_button_group.checkedButton()
         password = self.password_input.text()
+        print(password)
         if selected_button and password:
             self.key_size = selected_button.text()
 
@@ -88,6 +89,7 @@ class GenerateKeysWindow(QWidget):
             lowest_64_bits_bytes = public_byte[-8:]
 
             private_key = PrivateKey(encrypted_private_key)
+            print(convertPrivateToPEM(encrypted_private_key))
             public_key = PublicKey(public_byte, lowest_64_bits_bytes)
             private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email)
 

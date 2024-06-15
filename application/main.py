@@ -86,7 +86,7 @@ class Controller:
         self.send_message_window.proceed_signal.connect(self.show_second_send_message)
         self.widget.addWidget(self.send_message_window)
         self.widget.setCurrentWidget(self.send_message_window)
-        self.widget.setFixedSize(500, 400)
+        self.widget.setFixedSize(500, 500)
         self.center_window(self.widget)
 
     def show_receive_message(self, user):
@@ -97,12 +97,12 @@ class Controller:
         self.widget.setFixedSize(300, 200)
         self.center_window(self.widget)
 
-    def show_second_send_message(self, user, users, selected_user_email, selected_algorithm, message):
-        self.second_send_message_window = SecondSendMessageWindow(user, users, selected_user_email, selected_algorithm, message)
+    def show_second_send_message(self, user, users, selected_user_email, message, selected_options):
+        self.second_send_message_window = SecondSendMessageWindow(user, users, selected_user_email, message, selected_options)
         self.second_send_message_window.switch_to_menu.connect(self.show_user_menu)
         self.widget.addWidget(self.second_send_message_window)
         self.widget.setCurrentWidget(self.second_send_message_window)
-        self.widget.setFixedSize(600, 400)
+        self.widget.setFixedSize(600, 550)
         self.center_window(self.widget)
 
     def find_user_by_email(self, email):
