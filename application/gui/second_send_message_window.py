@@ -195,7 +195,51 @@ class SecondSendMessageWindow(QWidget):
             M += f"\n{timestamp}\n{self.sender_public_key_id}\n{signature.hex()}"
 
         if 'Kompresija' in self.selected_options:
-            M = zlib.compress(M.encode('utf-8'))
+            M = zlib.compress(M.encode('utf-8'))  # Compress the message in bytes
+            M = base64.b64encode(M).decode('utf-8')  # Encode the compressed bytes to a string
+
+        if 'Tajnost' in self.selected_options:
+            try:
+                if self.selected_algorithm == 'AES-128':
+                    key = self.receiver_public_key[:16]  # AES-128 uses a 128-bit key
+                    iv = self.receiver_public_key[:16]  # AES-128 typically uses a 128-bit IV
+                    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+                elif self.selected_algorithm == 'Triple DES':
+                    key = self.receiver_public_key[:24]  # Triple DES uses a 192-bit key
+                    iv = self.receiver_public_key[:8]  # Triple DES typically uses a 64-bit IV
+                    cipher = Cipher(algorithms.TripleDES(key), modes.CFB(iv), backend=default_backend())
+                else:
+                    raise ValueError("Nepodržani algoritam")
+
+                encryptor = cipher.encryptor()
+                encrypted_message = encryptor.update(M.encode('utf-8')) + encryptor.finalize()
+
+                # Encrypt the session key with the receiver's public key
+                receiver_public_key = serialization.load_der_public_key(
+                    self.receiver_public_key,
+                    backend=default_backend()
+                )
+
+                encrypted_session_key = receiver_public_key.encrypt(
+                    key,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
+                        label=None
+                    )
+                )
+
+                # Append the encrypted session key and the receiver's public key ID to the message
+                M = encrypted_message.hex() + f"\n{encrypted_session_key.hex()}\n{self.receiver_public_key_id}"
+                print("Receiver public key id from sending side")
+                print(self.receiver_public_key_id)
+
+            except Exception as e:
+                QMessageBox.critical(self, 'Greška', f'Došlo je do greške: {str(e)}')
+                return
+
+        if 'Radix 64' in self.selected_options:
+            M = base64.b64encode(M.encode('utf-8')).decode('utf-8')
 
         flag_map = {
             "Autentikacija": "0",

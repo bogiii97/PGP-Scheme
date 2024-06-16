@@ -85,6 +85,9 @@ class PrivateRingWindow(QWidget):
         # Implement your export public key logic here
         print(f'Public key PEM: {public_key_pem}')
 
+        print("Javni ključ prilikom izvoza")
+        print(public_key[-8:])
+
         keysPairsRelativePath = "..\\keyPairs"
         userFolderExists = self.does_user_folder_exists(keysPairsRelativePath, self.user.email)
         if not userFolderExists:

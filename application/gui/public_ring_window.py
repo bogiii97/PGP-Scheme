@@ -103,7 +103,6 @@ class PublicRingWindow(QWidget):
                         userId = match.group(1)
                     else:
                         print("Broj nije pronađen na putanji")
-                    print(userId)
 
                     # Ekstrahovanje stringa koji se nalazi nakon 'keyPairs\\' i pre 'public\\'
                     user_match = re.search(r'keyPairs\\([^\\]+)\\public', file_name.replace("/", "\\"))
@@ -114,6 +113,8 @@ class PublicRingWindow(QWidget):
                         return
 
                     public_byte = convertPEMToPublic(file_content)
+                    print("Javni ključ prilikom uvoza")
+                    print(public_byte[-8:])
                     lowest_64_bits_bytes = public_byte[-8:]
                     public_key = PublicKey(public_byte, lowest_64_bits_bytes)
                     public_ring_row = PublicRingRow(int(userId), datetime.now(), public_key, importedEmail)

@@ -23,6 +23,7 @@ class ReceiveMessageWindow(QWidget):
         self.users = users
         self.message = ""
         self.selected_options = []
+        self.selected_algorithm = ""
 
         self.setWindowTitle('Prijem poruke')
         self.setFixedSize(300, 200)
@@ -81,12 +82,98 @@ class ReceiveMessageWindow(QWidget):
                     message = file.read().strip()
 
                     # Decode from Radix64 if selected
+                    if 'Radix 64' in self.selected_options:
+                        M = base64.b64decode(message.encode('utf-8')).decode('utf-8')
 
+                    if 'Tajnost' in self.selected_options:
+                        try:
+                            parts = message.split('\n')
+                            encrypted_message_hex = parts[0]
+                            encrypted_session_key_hex = parts[1]
+                            receiver_public_key_id = parts[2]  # Make sure it's in bytes
+
+                            print("Receiver public key id from receive side:")
+                            print(receiver_public_key_id)
+
+                            encrypted_message = bytes.fromhex(encrypted_message_hex)
+                            encrypted_session_key = bytes.fromhex(encrypted_session_key_hex)
+
+                            # Retrieve the sender's private key
+                            receiver_private_key = None
+                            receiver_public_key = None
+                            for user in self.users:
+                                if self.user.email != user.email:
+                                    continue
+                                print("User's public key ids:")
+                                for key in user.private_ring:
+                                    print(len(key.publicKey.keyID))
+                                    print(len(receiver_public_key_id))
+                                    print(key.publicKey.keyID)
+                                    print(receiver_public_key_id)
+                                    if key.publicKey.keyID[:8] == receiver_public_key_id[:8]:  # Compare only the first 8 bytes
+                                        receiver_private_key = key.privateKey.key
+                                        receiver_public_key = key.publicKey.key
+                                        break
+
+                            if receiver_private_key is None:
+                                raise ValueError("Receiver's private key not found.")
+
+                            # Decrypt the sender's private key using CAST-128
+                            password = "123"
+                            sha1 = hashlib.sha1()
+                            sha1.update(password.encode('utf-8'))
+                            hashed_password = sha1.digest()
+
+                            key = hashed_password[:16]  # CAST-128 uses a 128-bit key
+                            iv = hashed_password[:8]
+                            cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
+                            decryptor = cipher.decryptor()
+                            decrypted_private_key_bytes = decryptor.update(receiver_private_key) + decryptor.finalize()
+
+                            private_key = serialization.load_der_private_key(
+                                decrypted_private_key_bytes,
+                                password=None,
+                                backend=default_backend()
+                            )
+
+                            # Decrypt the session key
+                            session_key = private_key.decrypt(
+                                encrypted_session_key,
+                                padding.OAEP(
+                                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                    algorithm=hashes.SHA256(),
+                                    label=None
+                                )
+                            )
+
+                            # Decrypt the message
+                            if self.selected_algorithm == 'AES-128':
+                                iv = receiver_public_key[:16]  # Use appropriate IV extraction
+                                key = receiver_public_key[:16]  # AES-128 uses a 128-bit key
+                                cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+                            elif self.selected_algorithm == 'Triple DES':
+                                iv = receiver_public_key[:8]  # Use appropriate IV extraction
+                                key = receiver_public_key[:24]  # Triple DES uses a 192-bit key
+                                cipher = Cipher(algorithms.TripleDES(key), modes.CFB(iv), backend=default_backend())
+                            else:
+                                raise ValueError("Nepodržani algoritam")
+
+                            decryptor = cipher.decryptor()
+                            decrypted_message = decryptor.update(encrypted_message) + decryptor.finalize()
+
+                            # Convert decrypted bytes back to string
+                            M = decrypted_message.decode('utf-8')
+                            print(f"Decrypted Message: {M}")
+
+                        except Exception as e:
+                            print(f"Failed to decrypt the message: {e}")
 
                     # Decompress if selected
                     if 'Kompresija' in self.selected_options:
                         try:
-                            message = zlib.decompress(message).decode('utf-8')
+                            message = base64.b64decode(message)  # Decode the base64 encoded compressed message to bytes
+                            message = zlib.decompress(message).decode(
+                                'utf-8')  # Decompress the bytes and decode to string
                             print("Message decompressed.")
                         except Exception as e:
                             print(f"Failed to decompress message: {e}")

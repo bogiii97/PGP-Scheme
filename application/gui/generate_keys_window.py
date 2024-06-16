@@ -74,6 +74,9 @@ class GenerateKeysWindow(QWidget):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
 
+            print("Javni ključ prilikom generisanja")
+            print(public_byte[-8:])
+
             sha1 = hashlib.sha1()
             sha1.update(password.encode('utf-8'))
             hashed_password = sha1.digest()
