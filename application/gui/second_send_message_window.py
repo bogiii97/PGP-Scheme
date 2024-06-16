@@ -1,3 +1,5 @@
+import secrets
+
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QRadioButton, \
     QButtonGroup, QLineEdit, QMessageBox
@@ -10,6 +12,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_der_public_key
 
 from application.util import convertPublicToPEM, convertPrivateToPEM
 
@@ -158,7 +161,7 @@ class SecondSendMessageWindow(QWidget):
         timestamp = str(int(time.time()))
         filename = "message.txt"
         M = f"{self.message}\n{timestamp}\n{filename}"
-        print("Usao")
+
 
         # Process authentication if selected
         if 'Autentikacija' in self.selected_options:
@@ -178,7 +181,6 @@ class SecondSendMessageWindow(QWidget):
             decryptor = cipher.decryptor()
             private_byte = decryptor.update(encrypted_data) + decryptor.finalize()
 
-
             # Load the private key
             try:
                 private_key = serialization.load_der_private_key(
@@ -189,7 +191,7 @@ class SecondSendMessageWindow(QWidget):
                 print("Private key successfully loaded.")
             except Exception as e:
                 print(f"Failed to load private key: {e}")
-            print("Usao3")
+
             # Create the message digest and sign it
             md = hashlib.sha1(M.encode('utf-8')).digest()
             signature = private_key.sign(md, padding.PKCS1v15(), hashes.SHA1())
@@ -202,23 +204,75 @@ class SecondSendMessageWindow(QWidget):
         if 'Kompresija' in self.selected_options:
             M = zlib.compress(M.encode('utf-8'))
 
-
         # Encrypt the message if selected
         if 'Tajnost' in self.selected_options:
-            pass
+            # Generate a session key
+            if self.selected_algorithm == 'Triple DES':
+                session_key = secrets.token_bytes(24)  # Triple DES uses a 24-byte key
+                cipher_algorithm = algorithms.TripleDES(session_key)
+                iv = secrets.token_bytes(8)  # Triple DES uses an 8-byte IV
+            elif self.selected_algorithm == 'AES-128':
+                session_key = secrets.token_bytes(16)  # AES-128 uses a 16-byte key
+                cipher_algorithm = algorithms.AES(session_key)
+                iv = secrets.token_bytes(16)  # AES uses a 16-byte IV
+            else:
+                raise ValueError("Unsupported algorithm selected")
+
+
+            # Encrypt the message with the session key
+            try:
+                cipher = Cipher(cipher_algorithm, modes.CFB(iv), backend=default_backend())
+                encryptor = cipher.encryptor()
+                encrypted_message = encryptor.update(M) + encryptor.finalize()
+            except Exception as e:
+                print(f"Encryption error: {e}")
+                return
+
+            # Encrypt the session key with the receiver's public key
+            try:
+                self.receiver_public_key = load_der_public_key(
+                    self.receiver_public_key,
+                    backend=default_backend()
+                )
+                encrypted_session_key = self.receiver_public_key.encrypt(
+                    session_key,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                        algorithm=hashes.SHA1(),
+                        label=None
+                    )
+                )
+            except Exception as e:
+                print(e)
+            if encrypted_session_key is not None:
+                M = f"{self.receiver_public_key_id}\n{encrypted_session_key}\n{iv}\n{encrypted_message}"
+                print("Final message structure prepared.")
+            else:
+                print("Failed to encrypt session key.")
+                return
 
         # Encode the message in Radix64 format if selected
         if 'Radix 64' in self.selected_options:
-            M = base64.b64encode(M).decode('utf-8')
+            M = base64.b64encode(M.encode('utf-8')).decode('utf-8')
 
+        flag_map = {
+            "Autentikacija": "0",
+            "Kompresija": "1",
+            "Tajnost": "2",
+            "Radix 64": "3"
+        }
+
+        # Generate the flag string
+        flags = [flag_map[option] for option in self.selected_options]
+        flag_string = ','.join(flags)
 
         # Write the message to a file
         message_dir = f"..\\keyPairs\\{self.selected_user_email}\\inbox"
         os.makedirs(message_dir, exist_ok=True)  # Ensure the directory exists
         message_path = os.path.join(message_dir, "message.txt")
-        with open(message_path, 'w') as f:
-            f.write(M)
 
+        with open(message_path, 'w') as f:
+            f.write(f"{flag_string}\n{M}")
 
         QMessageBox.information(self, 'Poruka poslana', 'Poruka je uspešno poslata i sačuvana.')
         self.back_to_menu()

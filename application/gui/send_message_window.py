@@ -39,9 +39,10 @@ class SendMessageWindow(QWidget):
         self.compression_checkbox = QCheckBox('Kompresija')
         self.secrecy_checkbox = QCheckBox('Tajnost')
         self.radix64_checkbox = QCheckBox('Radix 64')
-        layout.addWidget(self.secrecy_checkbox)
-        layout.addWidget(self.compression_checkbox)
         layout.addWidget(self.auth_checkbox)
+        layout.addWidget(self.compression_checkbox)
+        layout.addWidget(self.secrecy_checkbox)
+
         layout.addWidget(self.radix64_checkbox)
 
         # Input za poruku
