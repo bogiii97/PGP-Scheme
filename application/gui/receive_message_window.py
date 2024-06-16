@@ -81,7 +81,7 @@ class ReceiveMessageWindow(QWidget):
                     # Decode from Radix64 if selected
                     if 'Radix 64' in self.selected_options:
                         try:
-                            message = base64.b64decode(message.encode('utf-8'))
+                            message = base64.b64decode(message)
                             print("Message decoded from Radix64.")
                         except Exception as e:
                             print(f"Failed to decode from Radix64: {e}")
@@ -106,7 +106,7 @@ class ReceiveMessageWindow(QWidget):
                             print("Usao")
                             for key in self.user.private_ring:
                                 if key.publicKey.keyID == receiver_public_key_id:
-                                    private_key_info = key
+                                    private_key_info = key.privateKey.key
                                     break
                             print("Usao1")
                             if private_key_info is None:
@@ -162,7 +162,7 @@ class ReceiveMessageWindow(QWidget):
                     # Decompress if selected
                     if 'Kompresija' in self.selected_options:
                         try:
-                            message = zlib.decompress(message.encode('utf-8')).decode('utf-8')
+                            message = zlib.decompress(message.encode('utf-8'))
                             print("Message decompressed.")
                         except Exception as e:
                             print(f"Failed to decompress message: {e}")

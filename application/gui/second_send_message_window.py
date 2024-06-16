@@ -253,7 +253,7 @@ class SecondSendMessageWindow(QWidget):
 
         # Encode the message in Radix64 format if selected
         if 'Radix 64' in self.selected_options:
-            M = base64.b64encode(M.encode('utf-8')).decode('utf-8')
+            M = base64.b64encode(M).decode('utf-8')
 
         flag_map = {
             "Autentikacija": "0",
