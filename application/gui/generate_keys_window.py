@@ -80,7 +80,7 @@ class GenerateKeysWindow(QWidget):
 
             # Encrypt the private key using CAST-128
             key = hashed_password[:16]  # CAST-128 uses a 128-bit key
-            iv = os.urandom(8)  # CAST-128 uses a 64-bit IV
+            iv = hashed_password[:8]
             cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
             encryptor = cipher.encryptor()
             encrypted_private_key = encryptor.update(private_byte) + encryptor.finalize()

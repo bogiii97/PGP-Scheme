@@ -162,98 +162,40 @@ class SecondSendMessageWindow(QWidget):
         filename = "message.txt"
         M = f"{self.message}\n{timestamp}\n{filename}"
 
-
-        # Process authentication if selected
         if 'Autentikacija' in self.selected_options:
-            password = self.password_input.text()
-            print(password)
-            sha1 = hashlib.sha1()
-            sha1.update(password.encode('utf-8'))
-            hashed_password = sha1.digest()
-
-            # Extract the key and IV
-            key = hashed_password[:16]  # CAST-128 uses a 128-bit key
-            iv = self.sender_private_key[:8]  # Extract the first 8 bytes as IV
-            encrypted_data = self.sender_private_key[8:]  # The rest is the encrypted private key
-            print(convertPrivateToPEM(self.sender_private_key))
-            # Decrypt the private key using CAST-128
-            cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
-            decryptor = cipher.decryptor()
-            private_byte = decryptor.update(encrypted_data) + decryptor.finalize()
-
-            # Load the private key
             try:
+                password = self.password_input.text()
+                sha1 = hashlib.sha1()
+                sha1.update(password.encode('utf-8'))
+                hashed_password = sha1.digest()
+
+                # Decrypt the private key using CAST-128
+                key = hashed_password[:16]  # CAST-128 uses a 128-bit key
+                iv = hashed_password[:8]
+                cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
+                decryptor = cipher.decryptor()
+                decrypted_private_key_bytes = decryptor.update(self.sender_private_key) + decryptor.finalize()
+
                 private_key = serialization.load_der_private_key(
-                    private_byte,
+                    decrypted_private_key_bytes,
                     password=None,
                     backend=default_backend()
                 )
-                print("Private key successfully loaded.")
-            except Exception as e:
-                print(f"Failed to load private key: {e}")
 
-            # Create the message digest and sign it
-            md = hashlib.sha1(M.encode('utf-8')).digest()
-            signature = private_key.sign(md, padding.PKCS1v15(), hashes.SHA1())
-
-            # Prepare the signature structure
-            signature_structure = f"{timestamp}\n{self.sender_public_key_id}\n{signature.hex()}"
-            M = f"{M}\n{signature_structure}"
-
-        # Compress the message if selected
-        if 'Kompresija' in self.selected_options:
-            M = zlib.compress(M.encode('utf-8'))
-
-        # Encrypt the message if selected
-        if 'Tajnost' in self.selected_options:
-            # Generate a session key
-            if self.selected_algorithm == 'Triple DES':
-                session_key = secrets.token_bytes(24)  # Triple DES uses a 24-byte key
-                cipher_algorithm = algorithms.TripleDES(session_key)
-                iv = secrets.token_bytes(8)  # Triple DES uses an 8-byte IV
-            elif self.selected_algorithm == 'AES-128':
-                session_key = secrets.token_bytes(16)  # AES-128 uses a 16-byte key
-                cipher_algorithm = algorithms.AES(session_key)
-                iv = secrets.token_bytes(16)  # AES uses a 16-byte IV
-            else:
-                raise ValueError("Unsupported algorithm selected")
-
-
-            # Encrypt the message with the session key
-            try:
-                cipher = Cipher(cipher_algorithm, modes.CFB(iv), backend=default_backend())
-                encryptor = cipher.encryptor()
-                encrypted_message = encryptor.update(M) + encryptor.finalize()
-            except Exception as e:
-                print(f"Encryption error: {e}")
-                return
-
-            # Encrypt the session key with the receiver's public key
-            try:
-                self.receiver_public_key = load_der_public_key(
-                    self.receiver_public_key,
-                    backend=default_backend()
-                )
-                encrypted_session_key = self.receiver_public_key.encrypt(
-                    session_key,
-                    padding.OAEP(
-                        mgf=padding.MGF1(algorithm=hashes.SHA1()),
-                        algorithm=hashes.SHA1(),
-                        label=None
-                    )
+                # Sign the message
+                message_hash = hashlib.sha1(M.encode('utf-8')).digest()
+                signature = private_key.sign(
+                    message_hash,
+                    padding.PKCS1v15(),
+                    hashes.SHA1()
                 )
             except Exception as e:
                 print(e)
-            if encrypted_session_key is not None:
-                M = f"{self.receiver_public_key_id}\n{encrypted_session_key}\n{iv}\n{encrypted_message}"
-                print("Final message structure prepared.")
-            else:
-                print("Failed to encrypt session key.")
-                return
+            # Append the timestamp, sender's public key ID, and signature to the message
+            M += f"\n{timestamp}\n{self.sender_public_key_id}\n{signature.hex()}"
 
-        # Encode the message in Radix64 format if selected
-        if 'Radix 64' in self.selected_options:
-            M = base64.b64encode(M).decode('utf-8')
+        if 'Kompresija' in self.selected_options:
+            M = zlib.compress(M.encode('utf-8'))
 
         flag_map = {
             "Autentikacija": "0",
@@ -276,3 +218,97 @@ class SecondSendMessageWindow(QWidget):
 
         QMessageBox.information(self, 'Poruka poslana', 'Poruka je uspešno poslata i sačuvana.')
         self.back_to_menu()
+
+        """
+              if 'Autentikacija' in self.selected_options:
+                  password = self.password_input.text()
+                  print(password)
+                  sha1 = hashlib.sha1()
+                  sha1.update(password.encode('utf-8'))
+                  hashed_password = sha1.digest()
+
+                  # Extract the key and IV
+                  key = hashed_password[:16]  # CAST-128 uses a 128-bit key
+                  iv = self.sender_private_key[:8]  # Extract the first 8 bytes as IV
+                  encrypted_data = self.sender_private_key[8:]  # The rest is the encrypted private key
+                  print(convertPrivateToPEM(self.sender_private_key))
+                  # Decrypt the private key using CAST-128
+                  cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
+                  decryptor = cipher.decryptor()
+                  private_byte = decryptor.update(encrypted_data) + decryptor.finalize()
+
+                  # Load the private key
+                  try:
+                      private_key = serialization.load_der_private_key(
+                          private_byte,
+                          password=None,
+                          backend=default_backend()
+                      )
+                      print("Private key successfully loaded.")
+                  except Exception as e:
+                      print(f"Failed to load private key: {e}")
+
+                  # Create the message digest and sign it
+                  md = hashlib.sha1(M.encode('utf-8')).digest()
+                  signature = private_key.sign(md, padding.PKCS1v15(), hashes.SHA1())
+
+                  # Prepare the signature structure
+                  signature_structure = f"{timestamp}\n{self.sender_public_key_id}\n{signature.hex()}"
+                  M = f"{M}\n{signature_structure}"
+
+
+              # Compress the message if selected
+              if 'Kompresija' in self.selected_options:
+                  M = zlib.compress(M.encode('utf-8'))
+
+              # Encrypt the message if selected
+              if 'Tajnost' in self.selected_options:
+                  # Generate a session key
+                  if self.selected_algorithm == 'Triple DES':
+                      session_key = secrets.token_bytes(24)  # Triple DES uses a 24-byte key
+                      cipher_algorithm = algorithms.TripleDES(session_key)
+                      iv = secrets.token_bytes(8)  # Triple DES uses an 8-byte IV
+                  elif self.selected_algorithm == 'AES-128':
+                      session_key = secrets.token_bytes(16)  # AES-128 uses a 16-byte key
+                      cipher_algorithm = algorithms.AES(session_key)
+                      iv = secrets.token_bytes(16)  # AES uses a 16-byte IV
+                  else:
+                      raise ValueError("Unsupported algorithm selected")
+
+
+                  # Encrypt the message with the session key
+                  try:
+                      cipher = Cipher(cipher_algorithm, modes.CFB(iv), backend=default_backend())
+                      encryptor = cipher.encryptor()
+                      encrypted_message = encryptor.update(M) + encryptor.finalize()
+                  except Exception as e:
+                      print(f"Encryption error: {e}")
+                      return
+
+                  # Encrypt the session key with the receiver's public key
+                  try:
+                      self.receiver_public_key = load_der_public_key(
+                          self.receiver_public_key,
+                          backend=default_backend()
+                      )
+                      encrypted_session_key = self.receiver_public_key.encrypt(
+                          session_key,
+                          padding.OAEP(
+                              mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                              algorithm=hashes.SHA1(),
+                              label=None
+                          )
+                      )
+                  except Exception as e:
+                      print(e)
+                  if encrypted_session_key is not None:
+                      M = f"{self.receiver_public_key_id}\n{encrypted_session_key}\n{iv}\n{encrypted_message}"
+                      print("Final message structure prepared.")
+                  else:
+                      print("Failed to encrypt session key.")
+                      return
+
+              # Encode the message in Radix64 format if selected
+              if 'Radix 64' in self.selected_options:
+                  M = base64.b64encode(M).decode('utf-8')
+              """
