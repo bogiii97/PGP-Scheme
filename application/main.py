@@ -47,10 +47,10 @@ class Controller:
         self.user_menu_window = UserMenuWindow(user, self.users)
         self.user_menu_window.switch_window.connect(self.show_generate_keys)
         self.user_menu_window.switch_user.connect(self.show_login)
-        self.user_menu_window.view_private_ring.connect(self.show_private_ring)  # Povezujemo signal sa metodom
-        self.user_menu_window.view_public_ring.connect(self.show_public_ring)  # Povezujemo signal sa metodom za javni prsten
-        self.user_menu_window.switch_to_send_message.connect(self.show_send_message)  # Povezujemo signal za prikazivanje prozora za slanje poruke
-        self.user_menu_window.switch_to_receive_message.connect(self.show_receive_message)  # Povezujemo signal za prikazivanje prozora za prijem poruke
+        self.user_menu_window.view_private_ring.connect(self.show_private_ring)
+        self.user_menu_window.view_public_ring.connect(self.show_public_ring)
+        self.user_menu_window.switch_to_send_message.connect(self.show_send_message)
+        self.user_menu_window.switch_to_receive_message.connect(self.show_receive_message)
         self.widget.addWidget(self.user_menu_window)
         self.widget.setCurrentWidget(self.user_menu_window)
         self.widget.setFixedSize(400, 250)
@@ -74,7 +74,7 @@ class Controller:
 
     def show_public_ring(self, user, users):
         self.public_ring_window = PublicRingWindow(user, users)
-        self.public_ring_window.switch_to_menu.connect(self.show_user_menu)  # Povezujemo signal sa metodom za povratak
+        self.public_ring_window.switch_to_menu.connect(self.show_user_menu)
         self.widget.addWidget(self.public_ring_window)
         self.widget.setCurrentWidget(self.public_ring_window)
         self.widget.setFixedSize(1500, 400)
@@ -82,7 +82,7 @@ class Controller:
 
     def show_send_message(self, user):
         self.send_message_window = SendMessageWindow(user, self.users)
-        self.send_message_window.switch_to_menu.connect(self.show_user_menu)  # Povezujemo signal za povratak na meni
+        self.send_message_window.switch_to_menu.connect(self.show_user_menu)
         self.send_message_window.proceed_signal.connect(self.show_second_send_message)
         self.widget.addWidget(self.send_message_window)
         self.widget.setCurrentWidget(self.send_message_window)

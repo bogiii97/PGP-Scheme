@@ -11,14 +11,14 @@ from application.util import *
 import os, re
 
 class PrivateRingWindow(QWidget):
-    switch_to_menu = pyqtSignal(object)  # Signal za vraćanje na meni
+    switch_to_menu = pyqtSignal(object)
 
     def __init__(self, user, users):
         super().__init__()
         self.user = user
         self.users = users
         self.setWindowTitle('Privatni prsten')
-        self.setFixedSize(1500, 400)  # Postavljanje fiksne veličine prozora
+        self.setFixedSize(1500, 400)
         self.init_ui()
 
     def init_ui(self):
@@ -39,7 +39,7 @@ class PrivateRingWindow(QWidget):
 
         self.setLayout(layout)
 
-        # Centrirano dugme ispod tabele
+
         button_layout = QHBoxLayout()
         self.import_button = QPushButton('Uvezi par', self)
         self.import_button.setFixedWidth(150)
@@ -76,17 +76,13 @@ class PrivateRingWindow(QWidget):
             delete_button = QPushButton('Izbrisi')
             self.table.setCellWidget(row, 7, delete_button)
 
-            # Connecting button signals to methods
+
             export_public_button.clicked.connect(lambda _, pemPu=public_key_pem, pu=entry.publicKey.key: self.export_public_key(pemPu, pu))
             export_pair_button.clicked.connect(lambda _, pemPu=public_key_pem, pu=entry.publicKey.key, pemPr=private_key_pem: self.export_key_pair(pemPu, pu, pemPr))
             delete_button.clicked.connect(lambda _, pu=entry.publicKey.key: self.delete_key(pu))
 
     def export_public_key(self, public_key_pem, public_key):
-        # Implement your export public key logic here
-        print(f'Public key PEM: {public_key_pem}')
 
-        print("Javni ključ prilikom izvoza")
-        print(public_key[-8:])
 
         keysPairsRelativePath = "..\\keyPairs"
         userFolderExists = self.does_user_folder_exists(keysPairsRelativePath, self.user.email)
@@ -106,8 +102,6 @@ class PrivateRingWindow(QWidget):
         print(f'File {filename} created at {file_path}')
 
     def export_key_pair(self, public_key_pem, public_key, private_key_pem):
-        print(f'Public key PEM: {public_key_pem}')
-        print(f'Private key PEM: {private_key_pem}')
 
         keysPairsRelativePath = "..\\keyPairs"
         userFolderExists = self.does_user_folder_exists(keysPairsRelativePath, self.user.email)
@@ -134,8 +128,7 @@ class PrivateRingWindow(QWidget):
         self.user.private_ring = [entry for entry in self.user.private_ring if entry.ID != id]
         for user in self.users:
             user.public_ring = [entry for entry in user.public_ring if entry.ID != id]
-            for x in user.public_ring:
-                print(user.email, x.ID)
+
         keysPairsRelativePath = "..\\keyPairs"
         public_file_path = os.path.join(keysPairsRelativePath, self.user.email, "public", f"{id}.txt")
         pair_file_path = os.path.join(keysPairsRelativePath, self.user.email, "pair", f"{id}.txt")
@@ -151,27 +144,24 @@ class PrivateRingWindow(QWidget):
         self.populate_table()
 
     def import_key_pair(self):
-        # Putanja do korisničkog foldera sa folderom 'pair'
+
         user_folder_path = os.path.join("..\\keyPairs", self.user.email, "pair")
 
-        # Otvaranje dijaloga za odabir fajla
+
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Odaberite fajl sa parom ključeva", user_folder_path,
                                                    "Text Files (*.txt);;All Files (*)", options=options)
         if file_name:
             try:
-                # Čitanje sadržaja fajla
+
                 with open(file_name, 'r') as file:
                     file_content = file.read()
-                    print(f'Sadržaj fajla {file_name}:')
-
 
                     match = re.search(r'/(\d+)\.txt$', file_name)
                     if match: userId = match.group(1)
                     else: print("Broj nije pronađen na putanji")
-                    print(userId)
 
-                    #ovde imas file_content
+
                     public_pem_cleaned, private_pem_cleaned = file_content.split("+++++++++++++++++++")
                     public_pem_cleaned = public_pem_cleaned.strip()
                     private_pem_cleaned = private_pem_cleaned.strip()
@@ -184,7 +174,7 @@ class PrivateRingWindow(QWidget):
                     private_key = PrivateKey(encrypyed_private_byte)
                     public_key = PublicKey(public_byte, lowest_64_bits_bytes)
                     private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email, int(userId))
-                    print(userId)
+
                     self.user.private_ring.append(private_ring_row)
             except Exception as e:
                 print(f"Greška prilikom čitanja fajla: {e}")

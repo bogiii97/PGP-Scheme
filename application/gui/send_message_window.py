@@ -3,10 +3,10 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QLineEdit, QCheckBox, QMessageBox
 
 class SendMessageWindow(QWidget):
-    switch_to_menu = pyqtSignal(str)  # Signal za vraćanje na meni
-    proceed_signal = pyqtSignal(object, list, str, str, list)  # Signal za Dalje dugme
+    switch_to_menu = pyqtSignal(str)
+    proceed_signal = pyqtSignal(object, list, str, str, list)
 
-    key_pairs_path = "..\\keyPairs"  # Dodajemo promenljivu za putanju
+    key_pairs_path = "..\\keyPairs"
 
     def __init__(self, user, users):
         super().__init__()
@@ -17,7 +17,7 @@ class SendMessageWindow(QWidget):
         self.selected_options = []
 
         self.setWindowTitle('Slanje poruke')
-        self.setFixedSize(500, 500)  # Povećan prozor
+        self.setFixedSize(500, 500)
         self.init_ui()
 
     def init_ui(self):
@@ -45,20 +45,19 @@ class SendMessageWindow(QWidget):
 
         layout.addWidget(self.radix64_checkbox)
 
-        # Input za poruku
+
         self.message_input = QLineEdit(self)
         self.message_input.textChanged.connect(self.update_message)
         layout.addWidget(QLabel('Unesite poruku:'))
         layout.addWidget(self.message_input)
 
-        # Dugme Dalje
+
         self.proceed_button = QPushButton('Dalje', self)
         self.proceed_button.clicked.connect(self.proceed)
         layout.addWidget(self.proceed_button)
 
         self.setLayout(layout)
 
-        # Postavi prvi korisnik kao podrazumevani ako postoji
         if self.user_dropdown.count() > 0:
             self.selected_user_email = self.user_dropdown.itemText(0)
 
@@ -72,7 +71,6 @@ class SendMessageWindow(QWidget):
                 if os.path.isdir(item_path) and item != "counter.txt":
                     if item != self.user.email:
                         self.user_dropdown.addItem(item)
-            # Postavi prvi korisnik kao podrazumevani ako postoji
             if self.user_dropdown.count() > 0:
                 self.selected_user_email = self.user_dropdown.itemText(0)
         except Exception as e:

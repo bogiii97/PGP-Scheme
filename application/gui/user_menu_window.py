@@ -4,11 +4,11 @@ from PyQt5.QtCore import pyqtSignal
 class UserMenuWindow(QWidget):
     switch_window = pyqtSignal(object)
     switch_user = pyqtSignal()
-    view_private_ring = pyqtSignal(object, list)  # Dodajemo novi signal
-    view_public_ring = pyqtSignal(object, list)  # Dodajemo novi signal za javni prsten
+    view_private_ring = pyqtSignal(object, list)
+    view_public_ring = pyqtSignal(object, list)
 
     switch_to_send_message = pyqtSignal(object)
-    switch_to_receive_message = pyqtSignal(object)  # Novi signal
+    switch_to_receive_message = pyqtSignal(object)
 
     def __init__(self, user, users):
         super().__init__()
@@ -51,16 +51,16 @@ class UserMenuWindow(QWidget):
         self.setLayout(layout)
 
     def show_send_message_window(self):
-        self.switch_to_send_message.emit(self.user)  # Emitujemo signal za prikazivanje prozora za slanje poruke
+        self.switch_to_send_message.emit(self.user)
 
     def show_receive_message_window(self):
-        self.switch_to_receive_message.emit(self.user)  # Emitujemo signal za prikazivanje prozora za prijem poruke
+        self.switch_to_receive_message.emit(self.user)
 
     def show_generate_keys_window(self):
         self.switch_window.emit(self.user)
 
     def show_private_ring_window(self):
-        self.view_private_ring.emit(self.user, self.users)  # Emitujemo signal sa korisnikom i listom korisnika
+        self.view_private_ring.emit(self.user, self.users)
 
     def show_public_ring_window(self):
-        self.view_public_ring.emit(self.user, self.users)  # Emitujemo signal sa korisnikom i listom korisnika
+        self.view_public_ring.emit(self.user, self.users)

@@ -10,14 +10,14 @@ from application.util import *
 import os, re
 
 class PublicRingWindow(QWidget):
-    switch_to_menu = pyqtSignal(object)  # Signal za vraćanje na meni
+    switch_to_menu = pyqtSignal(object)
 
     def __init__(self, user, users):
         super().__init__()
         self.user = user
         self.users = users
         self.setWindowTitle('Javni prsten')
-        self.setFixedSize(1500, 400)  # Postavljanje fiksne veličine prozora
+        self.setFixedSize(1500, 400)
         self.init_ui()
 
     def init_ui(self):
@@ -38,7 +38,6 @@ class PublicRingWindow(QWidget):
 
         self.setLayout(layout)
 
-        # Centrirano dugme ispod tabele
         button_layout = QHBoxLayout()
         self.import_button = QPushButton('Uvezi javni', self)
         self.import_button.setFixedWidth(150)
@@ -81,22 +80,16 @@ class PublicRingWindow(QWidget):
         self.populate_table()
 
     def import_public_key(self):
-        # Putanja do korisničkog foldera sa folderom 'pair'
         user_folder_path = os.path.join("..\\keyPairs")
 
-        # Otvaranje dijaloga za odabir fajla
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Odaberite fajl sa javnim kljucem", user_folder_path,
                                                    "Text Files (*.txt);;All Files (*)", options=options)
 
         if file_name:
             try:
-                # Čitanje sadržaja fajla
-                print("********************************")
-                print(file_name)
                 with open(file_name, 'r') as file:
                     file_content = file.read()
-                    print(f'Sadržaj fajla {file_name}:')
 
                     match = re.search(r'/(\d+)\.txt$', file_name)
                     if match:
@@ -104,7 +97,6 @@ class PublicRingWindow(QWidget):
                     else:
                         print("Broj nije pronađen na putanji")
 
-                    # Ekstrahovanje stringa koji se nalazi nakon 'keyPairs\\' i pre 'public\\'
                     user_match = re.search(r'keyPairs\\([^\\]+)\\public', file_name.replace("/", "\\"))
                     if user_match:
                         importedEmail = user_match.group(1)
@@ -113,8 +105,8 @@ class PublicRingWindow(QWidget):
                         return
 
                     public_byte = convertPEMToPublic(file_content)
-                    print("Javni ključ prilikom uvoza")
-                    print(public_byte[-8:])
+
+
                     lowest_64_bits_bytes = public_byte[-8:]
                     public_key = PublicKey(public_byte, lowest_64_bits_bytes)
                     public_ring_row = PublicRingRow(int(userId), datetime.now(), public_key, importedEmail)

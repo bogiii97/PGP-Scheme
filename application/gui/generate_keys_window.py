@@ -57,7 +57,6 @@ class GenerateKeysWindow(QWidget):
     def submit(self):
         selected_button = self.radio_button_group.checkedButton()
         password = self.password_input.text()
-        print(password)
         if selected_button and password:
             self.key_size = selected_button.text()
 
@@ -74,25 +73,24 @@ class GenerateKeysWindow(QWidget):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
 
-            print("Javni ključ prilikom generisanja")
-            print(public_byte[-8:])
+
 
             sha1 = hashlib.sha1()
             sha1.update(password.encode('utf-8'))
             hashed_password = sha1.digest()
 
-            # Encrypt the private key using CAST-128
-            key = hashed_password[:16]  # CAST-128 uses a 128-bit key
+
+
+            key = hashed_password[:16]
             iv = hashed_password[:8]
             cipher = Cipher(algorithms.CAST5(key), modes.CFB(iv), backend=default_backend())
             encryptor = cipher.encryptor()
             encrypted_private_key = encryptor.update(private_byte) + encryptor.finalize()
 
-            # Extract the lowest 64 bits from the public key
+
             lowest_64_bits_bytes = public_byte[-8:]
 
             private_key = PrivateKey(encrypted_private_key)
-            print(convertPrivateToPEM(encrypted_private_key))
             public_key = PublicKey(public_byte, lowest_64_bits_bytes)
             private_ring_row = PrivateRingRow(datetime.now(), public_key, private_key, self.user.email)
 
