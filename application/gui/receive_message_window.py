@@ -191,8 +191,8 @@ class ReceiveMessageWindow(QWidget):
                     print("Sender's public key not found.")
                     return
 
-                sender_public_key = serialization.load_pem_public_key(
-                    convertPublicToPEM(sender_public_key).encode('utf-8'),
+                sender_public_key = serialization.load_der_public_key(
+                    sender_public_key,
                     backend=default_backend()
                 )
 
